@@ -23,6 +23,18 @@
 #include "default_animations.h"
 #include "led_backlight_keyframes.h"
 
+static bool initial_update = true;
+
+void initialize_user_visualizer(visualizer_state_t* state) {
+    // The brightness will be dynamically adjustable in the future
+    // But for now, change it here.
+
+    initial_update = true;
+    start_keyframe_animation(&default_startup_animation);
+}
+
+#ifdef WHITEFOX_FLASHY_VIZ
+
 keyframe_animation_t resume_animation = {
     .num_frames = 2,
     .loop = false,
@@ -76,15 +88,6 @@ keyframe_animation_t led_sleep_animation = {
     },
 };
 
-// Feel free to modify the animations below, or even add new ones if needed
-
-void initialize_user_visualizer(visualizer_state_t* state) {
-    // The brightness will be dynamically adjustable in the future
-    // But for now, change it here.
-    start_keyframe_animation(&default_startup_animation);
-}
-
-
 void update_user_visualizer_state(visualizer_state_t* state, visualizer_keyboard_status_t* prev_status) {
     // Add more tests, change the colors and layer texts here
     // Usually you want to check the high bits (higher layers first)
@@ -104,5 +107,31 @@ void user_visualizer_resume(visualizer_state_t* state) {
     stop_keyframe_animation(&led_sleep_animation);
     start_keyframe_animation(&resume_animation);
 }
+
+#else /* WHITEFOX_FLASH_VIZ not defined*/
+
+void update_user_visualizer_state(visualizer_state_t* state, visualizer_keyboard_status_t* prev_status) {
+    // Add more tests, change the colors and layer texts here
+    // Usually you want to check the high bits (higher layers first)
+    // because that's the order layers are processed for keypresses
+    // You can for check for example:
+    // state->status.layer
+    // state->status.default_layer
+    // state->status.leds (see led.h for available statuses)
+
+    if (initial_update) { initial_update=false; start_keyframe_animation(&led_test_animation); }
+}
+
+
+void user_visualizer_suspend(visualizer_state_t* state) {
+    start_keyframe_animation(&default_suspend_animation);
+}
+
+void user_visualizer_resume(visualizer_state_t* state) {
+    initial_update = true;
+    start_keyframe_animation(&default_startup_animation);
+}
+
+#endif /* WHITEFOX_FLASH_VIZ */
 
 #endif /* KEYBOARDS_WHITEFOX_SIMPLE_VISUALIZER_H_ */
