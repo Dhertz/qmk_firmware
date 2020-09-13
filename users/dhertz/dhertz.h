@@ -18,6 +18,6 @@ enum custom_keycodes {
     NEW_SAFE_RANGE,
 };
 
-void mod_or_mod_with_macro(keyrecord_t *record, uint16_t kc_mod, char* cmd_or_macro);
+void mod_or_mod_with_macro(keyrecord_t *record, uint16_t kc_mod, char* cmd_or_macro, uint16_t* timer);
 
 #endif

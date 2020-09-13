@@ -34,54 +34,59 @@ void matrix_init_user(void) {
 void matrix_scan_user(void) {
   matrix_scan_keymap();
 }
+uint16_t tab_timer = 0;
+uint16_t grv_timer = 0;
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch(keycode) {
         case CMD_TAB_CMD:
-            mod_or_mod_with_macro(record, KC_LGUI, SS_TAP(X_TAB));
-            return false;
+            mod_or_mod_with_macro(record, KC_LGUI, SS_TAP(X_TAB), &tab_timer);
+            break;
         case CMD_GRV_CMD:
-            mod_or_mod_with_macro(record, KC_RGUI, SS_TAP(X_GRAVE));
-            return false;
-    }
-
-    if (record->event.pressed) {
-        switch(keycode) {
-            case HSH_TLD:
+            mod_or_mod_with_macro(record, KC_RGUI, SS_TAP(X_GRAVE), &grv_timer);
+            break;
+        case HSH_TLD:
+            if (record->event.pressed) {
                 if (get_mods()&(MOD_BIT(KC_LSFT)|MOD_BIT(KC_RSFT))) {
                     SEND_STRING(SS_TAP(X_NONUS_BSLASH));
                 } else {
                     SEND_STRING(SS_LALT("3"));
                 }
-                break;
-            case CTRL_A:
+            }
+            break;
+        case CTRL_A:
+            if (record->event.pressed) {
                 SEND_STRING(SS_LCTRL("a"));
-                break;
-            case CMD_ALT_C:
+            }
+            break;
+        case CMD_ALT_C:
+            if (record->event.pressed) {
                 SEND_STRING(SS_LGUI(SS_LALT("c")));
-                break;
-            case CMD_SFT_L:
+            }
+            break;
+        case CMD_SFT_L:
+            if (record->event.pressed) {
                 SEND_STRING(SS_LGUI("L"));
-                break;
-            case ISO_COUNTRY_CODE:
+            }
+            break;
+        case ISO_COUNTRY_CODE:
+            if (record->event.pressed) {
                 SEND_STRING("country_iso_alpha2_code");
-                break;
-            default:
-                return process_record_keymap(keycode, record);
+            }
+            break;
+        default:
+            return process_record_keymap(keycode, record);
         }
-        return false;
-    }
-    return process_record_keymap(keycode, record);
+    return false;
 }
 
-static uint16_t sunds_timer;
 
-void mod_or_mod_with_macro(keyrecord_t *record, uint16_t kc_mod, char* macro) {
+void mod_or_mod_with_macro(keyrecord_t *record, uint16_t kc_mod, char* macro, uint16_t* timer) {
     if (record->event.pressed) {
-        sunds_timer = timer_read();
+        *timer = timer_read();
         register_code(kc_mod);
     } else {
-        if (timer_elapsed(sunds_timer) < TAPPING_TERM) {
+        if (timer_elapsed(*timer) < TAPPING_TERM) {
             send_string(macro);
         }
         unregister_code(kc_mod);
